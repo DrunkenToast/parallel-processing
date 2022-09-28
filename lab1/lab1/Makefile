@@ -1,13 +1,17 @@
 TARGET=main
 BUILD_DIR=./build
 
-all: build run
+cl_helper.o:
+	g++  -o $(BUILD_DIR)/cl_helper.o -c cl_helper.cpp -I . -lOpenCL
 
-build: main.cpp kernel.cl
-	g++  -o $(BUILD_DIR)/$(TARGET) $(TARGET).cpp -lOpenCL
+build: cl_helper.o
+	g++  -o $(BUILD_DIR)/$(TARGET) $(TARGET).cpp $(BUILD_DIR)/cl_helper.o -lOpenCL
 
 run:
 	$(BUILD_DIR)/$(TARGET)
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+start: build run
+
