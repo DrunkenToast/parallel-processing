@@ -1,4 +1,5 @@
-__kernel void vector_add(__global const int *A, __global const int *B, __global int *C) {
+__kernel void hello_world(__global const char *I, __global char *O) {
 	int i = get_global_id(0);
-	C[i] = A[i] + B[i];
+    O[i] = I[i];
 }
+
