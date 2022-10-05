@@ -106,6 +106,7 @@ cl_device_id getDeviceId(cl_platform_id &platform) {
                       NULL);
 
       std::cout << "\t" << deviceAttributeNames[j] << ": " << info << std::endl;
+      free(info);
     }
   }
 
@@ -138,4 +139,39 @@ void handleClErr(cl_int errCode, const char *identifier, uint32_t line) {
   std::cout << "Error code [" << errCode << "] with " << identifier
             << " at line " << line << std::endl;
   exit(errCode);
+}
+
+void getBuildInfo(cl_program &program, cl_device_id &device) {
+  size_t buildLogSize;
+  char *log;
+  cl_int err;
+
+  std::cout << "=== Kernel build info ===" << std::endl;
+  err = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr,
+                              &buildLogSize);
+  handleClErr(err, "clGetProgramBuildInfo", __LINE__);
+
+  log = (char *)malloc(buildLogSize);
+  clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, buildLogSize,
+                        log, nullptr);
+  handleClErr(err, "clGetProgramBuildInfo", __LINE__);
+
+  std::cout << "=== End build info ===" << std::endl;
+  free(log);
+}
+
+cl_context createContext(cl_device_id *device) {
+  cl_int err;
+  cl_context context = clCreateContext(NULL, 1, device, NULL, NULL, &err);
+  handleClErr(err, "clCreateContext", __LINE__);
+  return context;
+}
+
+cl_command_queue createCommandQueue(cl_context &context, cl_device_id &device) {
+  cl_int err;
+  cl_command_queue command_queue =
+      clCreateCommandQueueWithProperties(context, device, NULL, &err);
+  handleClErr(err, "clCreateCommand", __LINE__);
+
+  return command_queue;
 }
