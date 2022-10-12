@@ -42,11 +42,11 @@ cl_platform_id getPlatformId() {
   cl_platform_id *platforms;
 
   err = clGetPlatformIDs(0, NULL, &numPlatforms);
-  handleClErr(err, "clGetPlatformIDs", __LINE__);
+  handleClErr(err, "clGetPlatformIDs", __LINE__, __FILE__);
 
   platforms = (cl_platform_id *)malloc(numPlatforms * sizeof(cl_platform_id));
   err = clGetPlatformIDs(numPlatforms, platforms, NULL);
-  handleClErr(err, "clGetPlatformIDs", __LINE__);
+  handleClErr(err, "clGetPlatformIDs", __LINE__, __FILE__);
 
   std::cout << "=== Platforms ===" << std::endl;
   for (int i = 0; i < numPlatforms; i++) {
@@ -87,11 +87,11 @@ cl_device_id getDeviceId(cl_platform_id &platform) {
   cl_device_id *devices;
 
   err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL, &numDevices);
-  handleClErr(err, "clGetDeviceIDs", __LINE__);
+  handleClErr(err, "clGetDeviceIDs", __LINE__, __FILE__);
 
   devices = (cl_device_id *)malloc(numDevices * sizeof(cl_platform_id));
   err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, numDevices, devices, NULL);
-  handleClErr(err, "clGetDeviceIDs", __LINE__);
+  handleClErr(err, "clGetDeviceIDs", __LINE__, __FILE__);
 
   std::cout << "=== Devices ===" << std::endl;
   for (int i = 0; i < numDevices; i++) {
@@ -99,11 +99,16 @@ cl_device_id getDeviceId(cl_platform_id &platform) {
     for (int j = 0; j < DEVICE_ATRRIBUTE_COUNT; j++) {
       size_t infoSize;
       char *info;
-      clGetDeviceInfo(devices[i], deviceAttributeTypes[j], 0, NULL, &infoSize);
+      cl_int err;
+      err = clGetDeviceInfo(devices[i], deviceAttributeTypes[j], 0, NULL,
+                            &infoSize);
+      handleClErr(err, "clGetDeviceInfo", __LINE__, __FILE__);
+
       info = (char *)malloc(infoSize);
 
-      clGetDeviceInfo(devices[i], deviceAttributeTypes[j], infoSize, info,
-                      NULL);
+      err = clGetDeviceInfo(devices[i], deviceAttributeTypes[j], infoSize, info,
+                            NULL);
+      handleClErr(err, "clGetDeviceInfo", __LINE__, __FILE__);
 
       std::cout << "\t" << deviceAttributeNames[j] << ": " << info << std::endl;
       free(info);
@@ -117,7 +122,10 @@ cl_device_id getDeviceId(cl_platform_id &platform) {
 
 uint32_t pickChoice(const char *title, uint32_t _default) {
   uint32_t choice;
-  std::cout << std::endl << "> " << title << " [default=" << _default << "]: ";
+  std::cout << std::endl
+            << "\033[32m"
+            << "> " << title << " [default=" << _default << "]: "
+            << "\033[0m";
 
   if (std::cin.peek() == '\n') {
     choice = _default;
@@ -132,12 +140,12 @@ uint32_t pickChoice(const char *title, uint32_t _default) {
   return choice;
 }
 
-// TODO: pass file, assumes it's all in one file
-void handleClErr(cl_int errCode, const char *identifier, uint32_t line) {
+void handleClErr(cl_int errCode, const char *identifier, uint32_t line,
+                 const char *file) {
   if (errCode == CL_SUCCESS)
     return;
-  std::cout << "Error code [" << errCode << "] with " << identifier
-            << " at line " << line << std::endl;
+  std::cout << "Error code [" << errCode << "] with " << identifier << " at "
+            << file << ":" << line << std::endl;
   exit(errCode);
 }
 
@@ -149,21 +157,22 @@ void getBuildInfo(cl_program &program, cl_device_id &device) {
   std::cout << "=== Kernel build info ===" << std::endl;
   err = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr,
                               &buildLogSize);
-  handleClErr(err, "clGetProgramBuildInfo", __LINE__);
+  handleClErr(err, "clGetProgramBuildInfo", __LINE__, __FILE__);
 
   log = (char *)malloc(buildLogSize);
   clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, buildLogSize,
                         log, nullptr);
-  handleClErr(err, "clGetProgramBuildInfo", __LINE__);
+  std::cout << "\033[31m" << log << "\033[0m" << std::endl;
+  handleClErr(err, "clGetProgramBuildInfo", __LINE__, __FILE__);
 
-  std::cout << "=== End build info ===" << std::endl;
+  std::cout << "=== End build info ===" << std::endl << std::endl;
   free(log);
 }
 
 cl_context createContext(cl_device_id *device) {
   cl_int err;
   cl_context context = clCreateContext(NULL, 1, device, NULL, NULL, &err);
-  handleClErr(err, "clCreateContext", __LINE__);
+  handleClErr(err, "clCreateContext", __LINE__, __FILE__);
   return context;
 }
 
@@ -171,7 +180,7 @@ cl_command_queue createCommandQueue(cl_context &context, cl_device_id &device) {
   cl_int err;
   cl_command_queue command_queue =
       clCreateCommandQueueWithProperties(context, device, NULL, &err);
-  handleClErr(err, "clCreateCommand", __LINE__);
+  handleClErr(err, "clCreateCommand", __LINE__, __FILE__);
 
   return command_queue;
 }

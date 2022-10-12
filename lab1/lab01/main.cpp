@@ -35,12 +35,12 @@ int main(int argc, char **argv) {
   // Create input and output buffers
   cl_mem input_mem_obj = clCreateBuffer(
       context, CL_MEM_READ_ONLY, sizeof(char) * input_str.length(), NULL, &err);
-  handleClErr(err, "clCreateBuffer", __LINE__);
+  handleClErr(err, "clCreateBuffer", __LINE__, __FILE__);
 
   cl_mem output_mem_obj =
       clCreateBuffer(context, CL_MEM_WRITE_ONLY,
                      sizeof(char) * input_str.length(), NULL, &err);
-  handleClErr(err, "clCreateBuffer", __LINE__);
+  handleClErr(err, "clCreateBuffer", __LINE__, __FILE__);
 
   // Write hello world to input buffer
   err = clEnqueueWriteBuffer(command_queue, input_mem_obj, CL_TRUE, 0,
@@ -54,16 +54,16 @@ int main(int argc, char **argv) {
 
   err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
     getBuildInfo(program, device);
-  handleClErr(err, "clBuildProgram", __LINE__);
+  handleClErr(err, "clBuildProgram", __LINE__, __FILE__);
 
   // Create kernel and set parameters
   cl_kernel kernel = clCreateKernel(program, "hello_world", &err);
-  handleClErr(err, "clCreateKernel", __LINE__);
+  handleClErr(err, "clCreateKernel", __LINE__, __FILE__);
 
   err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_mem_obj);
-  handleClErr(err, "clSetKernelArg", __LINE__);
+  handleClErr(err, "clSetKernelArg", __LINE__, __FILE__);
   err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_mem_obj);
-  handleClErr(err, "clSetKernelArg", __LINE__);
+  handleClErr(err, "clSetKernelArg", __LINE__, __FILE__);
 
   std::cout << "> Executing..." << std::endl << std::endl;
 

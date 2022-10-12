@@ -4,7 +4,7 @@ BUILD_DIR=./build
 cl_helper.o: cl_helper.cpp cl_helper.hpp
 	g++  -o $(BUILD_DIR)/cl_helper.o -c cl_helper.cpp -I . -lOpenCL
 
-build: $(BUILD_DIR)/cl_helper.o $(TARGET).cpp
+build: cl_helper.o $(TARGET).cpp
 	g++  -o $(BUILD_DIR)/$(TARGET) $(TARGET).cpp $(BUILD_DIR)/cl_helper.o -lOpenCL
 
 run:
