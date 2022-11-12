@@ -13,7 +13,7 @@
 #define KERNEL_FILE "kernel.cl"
 
 int main(int argc, char **argv) {
-  const cl_int SIZE = 16;
+  const cl_int SIZE = 7;
   cl_int err;
   size_t kernel_size;
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
   // ### Kernel passes for minimum ############################################
 
   int resultSize;
-  global_work_size = 8;
+  global_work_size = 4;
   local_item_size = 2;
 
   resultSize = (global_work_size / local_item_size) * 2;
@@ -146,11 +146,10 @@ int main(int argc, char **argv) {
                             sizeof(cl_float) * resultSize, maxs, 0, NULL, NULL);
   handleClErr(err, "clEnqueueReadBuffer", __LINE__, __FILE__);
 
-  std::cout << "min: " << mins[0] << std::endl
-            << "max: " << maxs[0] << std::endl;
+  std::cout << "min: " << mins[0] << std::endl;
 
-  // free(mins);
-  // free(maxs);
+  free(mins);
+  free(maxs);
 
   exit(0);
 }

@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
   cl_int err;
   size_t kernel_size;
 
-  const cl_int A_WIDTH = 2;
-  const cl_int A_HEIGHT = 2;
+  const cl_int A_WIDTH = 6000;
+  const cl_int A_HEIGHT = 150;
 
-  const cl_int B_WIDTH = 3;
-  const cl_int B_HEIGHT = 2;
+  const cl_int B_WIDTH = 400;
+  const cl_int B_HEIGHT = 6000;
 
   const cl_int C_WIDTH = B_WIDTH;
   const cl_int C_HEIGHT = A_HEIGHT;
@@ -33,11 +33,8 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  cl_int A[A_HEIGHT][A_WIDTH] = {{1, 2}, {4, 3}};
-  cl_int B[B_HEIGHT][B_WIDTH] = {
-      {1, 2, 3},
-      {3, -4, 7},
-  };
+  cl_int A[A_HEIGHT][A_WIDTH];
+  cl_int B[B_HEIGHT][B_WIDTH];
 
   cl_int C[C_HEIGHT][C_WIDTH] = {0};
 
@@ -50,6 +47,7 @@ int main(int argc, char **argv) {
   std::cout << std::endl;
   for (int j = 0; j < A_HEIGHT; j++) {
     for (int i = 0; i < A_WIDTH; i++) {
+      A[j][i] = rand() % 5 + 1;
       std::cout << A[j][i] << "\t";
     }
     std::cout << std::endl;
@@ -58,6 +56,7 @@ int main(int argc, char **argv) {
   std::cout << std::endl;
   for (int j = 0; j < B_HEIGHT; j++) {
     for (int i = 0; i < B_WIDTH; i++) {
+      B[j][i] = rand() % 5 + 1;
       std::cout << B[j][i] << "\t";
     }
     std::cout << std::endl;
@@ -112,13 +111,21 @@ int main(int argc, char **argv) {
 
   size_t global_work_size[2] = {C_WIDTH, C_HEIGHT};
   size_t local_item_size[2] = {1, 1};
+
+  cl_event event_timer;
+
   err = clEnqueueNDRangeKernel(command_queue, kernel, 2, // workdim is 2
                                0, global_work_size, local_item_size, 0, NULL,
-                               NULL);
+                               &event_timer);
 
   err = clEnqueueReadBuffer(command_queue, output_mem_obj, CL_TRUE, 0, C_SIZE,
                             C, 0, NULL, NULL);
 
+  unsigned long starttime, endtime, elapsed;
+  clGetEventProfilingInfo(event_timer, CL_PROFILING_COMMAND_START,
+                          sizeof(cl_ulong), &starttime, NULL);
+  clGetEventProfilingInfo(event_timer, CL_PROFILING_COMMAND_END,
+                          sizeof(cl_ulong), &endtime, NULL);
   for (int i = 0; i < C_HEIGHT; i++) {
     for (int j = 0; j < C_WIDTH; j++) {
       std::cout << C[i][j] << "\t";
@@ -126,6 +133,10 @@ int main(int argc, char **argv) {
     std::cout << std::endl;
   }
   std::cout << std::endl;
+
+    elapsed = endtime - starttime;
+
+  std::cout << "elapsed time: " << elapsed << std::endl;
 
   exit(0);
 }
